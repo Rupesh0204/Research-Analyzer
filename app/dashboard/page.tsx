@@ -1,5 +1,5 @@
 import DashLayout from '@/components/DashLayout'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabase, getOrCreateProfile } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 
@@ -10,8 +10,8 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: profile }, { data: docs }, { data: queries }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
+  const [profile, { data: docs }, { data: queries }] = await Promise.all([
+    getOrCreateProfile(supabase, user),
     supabase.from('documents').select('id,title,status,file_type').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
     supabase.from('research_queries').select('id,query,status,result,model_used,processing_time_ms').eq('user_id', user.id).order('created_at', { ascending: false }).limit(6),
   ])

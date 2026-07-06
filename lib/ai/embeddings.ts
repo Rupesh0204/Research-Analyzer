@@ -4,8 +4,7 @@
 // Output: 384-dimensional vectors
 // =============================================
 
-const HF_API_URL = 'https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2'
-
+const HF_API_URL = 'https://router.huggingface.co/hf-inference/models/sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction'
 export async function generateEmbedding(text: string): Promise<number[]> {
   const response = await fetch(HF_API_URL, {
     method: 'POST',

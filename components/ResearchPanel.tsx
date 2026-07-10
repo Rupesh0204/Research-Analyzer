@@ -93,7 +93,7 @@ function ResultView({ result, qId, ms, model }: { result: Result; qId: string; m
                 [{i + 1}] {c.source}
                 {c.relevance_score != null && <span style={{ color: '#f59e0b', marginLeft: 8 }}>{Math.round(Number(c.relevance_score) * 100)}% match</span>}
               </div>
-              <div style={{ fontStyle: 'italic', color: '#9898a0' }}>"{c.text}"</div>
+              <div style={{ fontStyle: 'italic', color: '#9898a0' }}>&quot;{c.text}&quot;</div>
             </div>
           ))}
         </div>

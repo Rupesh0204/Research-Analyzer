@@ -1,8 +1,0 @@
-{
-  "/dashboard/page": "app/dashboard/page.js",
-  "/documents/page": "app/documents/page.js",
-  "/upgrade/page": "app/upgrade/page.js",
-  "/history/page": "app/history/page.js",
-  "/page": "app/page.js",
-  "/settings/page": "app/settings/page.js"
-}

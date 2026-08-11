@@ -185,10 +185,13 @@ Open: **http://localhost:3000**
 - Click **"Upgrade Now"**
 - Razorpay test checkout opens
 - Use test card:
-  - Card number: `4111 1111 1111 1111`
-  - Expiry: `12/26`
-  - CVV: `123`
-  - OTP: `1234`
+  ## Test Payment
+- Card: `4100 2800 0000 1007`
+- Expiry: any future date
+- CVV: any 3 digits
+- OTP: `1234`
+- Mastercard: `5500 6700 0000 1002`
+- RuPay: `6527 6589 0000 1005`
 - Your plan upgrades to Premium, credits → 50
 
 ### E) Export a Report

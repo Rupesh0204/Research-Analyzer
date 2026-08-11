@@ -49,7 +49,7 @@ export default function Home() {
         </div>
 
         <div style={{ marginTop: 40, padding: 16, background: '#1a1a1d', border: '1px solid #2e2e34', borderRadius: 10, fontSize: 12, color: '#606068' }}>
-          🧪 Test card: <span style={{ fontFamily: 'monospace', color: '#f1f1f3' }}>4111 1111 1111 1111</span> · Expiry: any future date · CVV: 123 · OTP: 1234
+          🧪 Test card: <span style={{ fontFamily: 'monospace', color: '#f1f1f3' }}>4100 2800 0000 1007  or 5500 6700 0000 1002 or 6527 6589 0000 1005</span> · Expiry: any future date · CVV: 123 · OTP: 1234
         </div>
       </div>
     </div>

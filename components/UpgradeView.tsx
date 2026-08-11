@@ -96,7 +96,7 @@ export default function UpgradeView({ profile }: { profile: Profile }) {
       <div style={{ background: '#1a1a1d', border: '1px solid #2e2e34', borderRadius: 12, padding: '16px 20px' }}>
         <div style={{ fontWeight: 600, color: '#f59e0b', marginBottom: 10, fontSize: 13 }}>🧪 Razorpay Test Mode</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '5px 16px', fontSize: 13 }}>
-          {[['Card', '4111 1111 1111 1111'], ['Expiry', 'Any future (e.g. 12/27)'], ['CVV', 'Any 3 digits'], ['OTP', '1234']].map(([k, v]) => (
+          {[['Card', '4100 2800 0000 1007'], ['Expiry', 'Any future (e.g. 12/27)'], ['CVV', 'Any 3 digits'], ['OTP', '1234']].map(([k, v]) => (
             <>
               <span key={'k-' + k} style={{ color: '#9898a0' }}>{k}</span>
               <span key={'v-' + k} style={{ fontFamily: 'monospace', color: '#f1f1f3' }}>{v}</span>

@@ -30,28 +30,42 @@ export async function getOrCreateProfile(
     .from('profiles')
     .select('*')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (!error && profile) return profile
+  if (profile) return profile
 
-  // Profile row missing (e.g. account existed before the DB trigger was set up) — create it now.
-  const { data: created, error: createErr } = await supabase
+  // Temporary error (network, timeout): do NOT create anything
+  if (error) {
+    console.error('Failed to load profile:', error.message)
+    return null
+  }
+
+  // Row is truly missing — create it with the admin client, never overwrite an existing row
+  const admin = createAdminSupabase()
+  const { error: createErr } = await admin
     .from('profiles')
-    .upsert({
-      id: user.id,
-      email: user.email ?? '',
-      full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-      plan: 'free',
-      credits: 10,
-      total_queries: 0,
-    })
-    .select()
-    .single()
+    .upsert(
+      {
+        id: user.id,
+        email: user.email ?? '',
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+        plan: 'free',
+        credits: 10,
+        total_queries: 0,
+      },
+      { onConflict: 'id', ignoreDuplicates: true }
+    )
 
   if (createErr) {
     console.error('Failed to create missing profile:', createErr.message)
     return null
   }
+
+  const { data: created } = await admin
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
 
   return created
 }

@@ -67,6 +67,15 @@ export async function POST(request: NextRequest) {
 
     const adminSupabase = createAdminSupabase()
 
+    // Take 1 credit atomically (returns null if none left)
+    const { data: remaining } = await adminSupabase.rpc('consume_credit', { p_user: user.id })
+    if (remaining === null || remaining === undefined) {
+      return NextResponse.json(
+        { error: 'No credits remaining. Upgrade to Premium for more credits.' },
+        { status: 402 }
+      )
+    }
+
     // Create query record (status: processing)
     const { data: queryRecord, error: queryError } = await adminSupabase
       .from('research_queries')
@@ -81,17 +90,9 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (queryError || !queryRecord) {
+      await adminSupabase.rpc('refund_credit', { p_user: user.id })
       throw new Error(`Failed to create query record: ${queryError?.message}`)
     }
-
-    // Deduct credit + increment query count optimistically
-    await adminSupabase
-      .from('profiles')
-      .update({
-        credits: profile.credits - 1,
-        total_queries: (profile.total_queries || 0) + 1,
-      })
-      .eq('id', user.id)
 
     // Run RAG pipeline
     try {
@@ -118,20 +119,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         query_id: queryRecord.id,
         result,
-        credits_remaining: profile.credits - 1,
+        credits_remaining: remaining,
         processing_time_ms: processingTime,
         model_used: model,
         chunks_analyzed: chunksUsed,
       })
     } catch (ragError) {
       // Refund credit on failure
-      await adminSupabase
-        .from('profiles')
-        .update({
-          credits: profile.credits,
-          total_queries: profile.total_queries || 0,
-        })
-        .eq('id', user.id)
+      await adminSupabase.rpc('refund_credit', { p_user: user.id })
 
       await adminSupabase
         .from('research_queries')

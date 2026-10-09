@@ -123,27 +123,44 @@ CREATE POLICY "profiles_select_own" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "profiles_update_own" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
-CREATE POLICY "profiles_insert_own" ON public.profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
 
--- documents: CRUD on own documents
+-- documents: read + delete own (inserts/updates happen on the server)
 CREATE POLICY "docs_select_own"  ON public.documents FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "docs_insert_own"  ON public.documents FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "docs_update_own"  ON public.documents FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "docs_delete_own"  ON public.documents FOR DELETE USING (auth.uid() = user_id);
 
--- document_chunks: users access only their own chunks
+-- document_chunks: read + delete own (inserts happen on the server)
 CREATE POLICY "chunks_select_own" ON public.document_chunks FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "chunks_insert_own" ON public.document_chunks FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "chunks_delete_own" ON public.document_chunks FOR DELETE USING (auth.uid() = user_id);
 
--- research_queries: CRUD own queries
+-- research_queries: read own (writes happen on the server)
 CREATE POLICY "queries_select_own" ON public.research_queries FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "queries_insert_own" ON public.research_queries FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "queries_update_own" ON public.research_queries FOR UPDATE USING (auth.uid() = user_id);
 
 -- transactions: users can only view their own
 CREATE POLICY "tx_select_own" ON public.transactions FOR SELECT USING (auth.uid() = user_id);
+
+-- Users may edit only their display name. Plan, credits and all other
+-- writes happen on the server with the service-role key.
+REVOKE UPDATE ON public.profiles FROM anon, authenticated;
+GRANT  UPDATE (full_name) ON public.profiles TO authenticated;
+
+-- Atomic credit handling (used by /api/queries/generate)
+CREATE OR REPLACE FUNCTION public.consume_credit(p_user UUID)
+RETURNS INTEGER LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  UPDATE public.profiles
+  SET credits = credits - 1, total_queries = total_queries + 1
+  WHERE id = p_user AND credits > 0
+  RETURNING credits;
+$$;
+
+CREATE OR REPLACE FUNCTION public.refund_credit(p_user UUID)
+RETURNS VOID LANGUAGE sql SECURITY DEFINER SET search_path = public AS $$
+  UPDATE public.profiles
+  SET credits = credits + 1, total_queries = GREATEST(total_queries - 1, 0)
+  WHERE id = p_user;
+$$;
+
+REVOKE ALL ON FUNCTION public.consume_credit(UUID), public.refund_credit(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.consume_credit(UUID), public.refund_credit(UUID) TO service_role;
 
 -- ================================================================
 -- FUNCTIONS
